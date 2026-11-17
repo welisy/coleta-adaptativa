@@ -51,6 +51,8 @@ def _carregar_env(caminho: Path) -> None:
         valor = valor.strip()
         if valor[:1] in ('"', "'"):
             valor = valor[1:].split(valor[0], 1)[0]
+        elif valor.startswith("#"):                              # CHAVE=   # comentário -> vazio
+            valor = ""
         else:
             valor = valor.split(" #", 1)[0].strip()             # comentário no fim da linha
         os.environ.setdefault(chave.strip(), valor)

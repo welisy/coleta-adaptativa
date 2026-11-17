@@ -1,5 +1,6 @@
 """Testes ponta a ponta contra a API de exemplo (sobe um servidor local numa porta livre)."""
 import json
+import os
 import sys
 import tempfile
 import threading
@@ -109,6 +110,24 @@ class TestColeta(unittest.TestCase):
         self.assertTrue(all(isinstance(t, str) and t for t in cache.values()))
         saida = coleta.cmd_gerar(PERIODO)
         self.assertTrue(saida.exists())
+
+
+class TestEnv(unittest.TestCase):
+    def test_comentarios_e_aspas_no_env(self):
+        caminho = Path(tmp.name) / "teste.env"
+        caminho.write_text(
+            "COLETA_T_VAZIO=   # só comentário\n"
+            'COLETA_T_ASPAS="a # b"  # comentário depois das aspas\n'
+            "COLETA_T_SIMPLES=valor  # comentário\n"
+            "COLETA_T_URL=http://x/#ancora\n", encoding="utf-8")
+        esperado = {"COLETA_T_VAZIO": "", "COLETA_T_ASPAS": "a # b", "COLETA_T_SIMPLES": "valor",
+                    "COLETA_T_URL": "http://x/#ancora"}
+        try:
+            coleta._carregar_env(caminho)
+            self.assertEqual({k: os.environ.get(k) for k in esperado}, esperado)
+        finally:
+            for k in esperado:
+                os.environ.pop(k, None)
 
 
 if __name__ == "__main__":
